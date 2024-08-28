@@ -10,6 +10,9 @@ from schema import Schema
 from livetext_botc import botc
 from livetext_botc.http import Resource
 
+UNOFFICIAL_ICON_API = lambda \
+        role: f'https://raw.githubusercontent.com/nicholas-eden/townsquare/develop/src/assets/icons/{role}.png'
+
 SCRIPT_TOOL_URL = 'https://script.bloodontheclocktower.com'
 
 
@@ -49,7 +52,13 @@ def get_script(script_id: int) -> Resource[botc.Script]:
     )
 
 
-def get_roles() -> Resource:
+def get_roles(use_official_art: bool = False) -> Resource:
+    """
+    Retrieves info about the game.
+    :param use_official_art: use official art or unofficial one
+    :return:
+    """
+
     def resolve_url(value, key):
         parse = urllib.parse
         value[key] = parse.quote(
@@ -62,8 +71,12 @@ def get_roles() -> Resource:
         for value in values:
             id = value['id']
             roleType = botc.RoleType.parse(value['roleType'])
-            resolve_url(value, 'print')
-            resolve_url(value, 'icon')
+            if use_official_art:
+                resolve_url(value, 'print')
+                resolve_url(value, 'icon')
+            else:
+                value['icon'] = UNOFFICIAL_ICON_API(id)
+
             roles[id] = {
                 'id': id,
                 'name': value['name'],
